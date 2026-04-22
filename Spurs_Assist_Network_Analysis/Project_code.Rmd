@@ -1,0 +1,394 @@
+---
+title: "Projet Graph Analysis"
+author: "PICART Alexandre / SIMUS Simon"
+date: "2026-03-01"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+library(igraph)
+library(sna)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(tidygraph)
+library(ggraph)
+library(grid)
+library(knitr)
+
+# Data
+edges <- read_csv("spurs_assist_network_edges_2024_25_regular_season.csv", show_col_types = FALSE)
+followers <- read_csv("spurs_instagram_followers_simple.csv", show_col_types = FALSE)
+```
+
+# Question 3
+
+```{r}
+# Keep only real ties
+edges <- edges %>%
+  select(from_player, to_player, assists) %>%
+  filter(assists > 0)
+
+spurs_net <- graph_from_data_frame(
+  d = edges,
+  directed = TRUE,
+  vertices = followers %>% rename(name = player)
+)
+
+E(spurs_net)$weight <- E(spurs_net)$assists
+V(spurs_net)$instagram_followers <- followers$instagram_followers[
+  match(V(spurs_net)$name, followers$player)
+]
+```
+
+# Question 4
+
+```{r}
+cat("Number of nodes:", vcount(spurs_net), "\n")
+cat("Number of edges:", ecount(spurs_net), "\n")
+cat("Directed graph:", is_directed(spurs_net), "\n")
+cat("Weighted graph:", is_weighted(spurs_net), "\n")
+
+cat("\nVertex attributes:\n")
+print(vertex_attr_names(spurs_net))
+
+cat("\nEdge attributes:\n")
+print(edge_attr_names(spurs_net))
+```
+
+```{r}
+density_spurs <- edge_density(spurs_net, loops = FALSE)
+reciprocity_spurs <- reciprocity(spurs_net)
+
+spurs_net_und <- as_undirected(
+  spurs_net,
+  mode = "collapse",
+  edge.attr.comb = list(weight = "sum")
+)
+
+transitivity_spurs <- transitivity(spurs_net_und, type = "global")
+
+network_stats <- data.frame(
+  Statistic = c("Density", "Reciprocity", "Transitivity"),
+  Value = c(density_spurs, reciprocity_spurs, transitivity_spurs)
+)
+
+network_stats
+```
+
+```{r}
+attribute_summary <- data.frame(
+  Min_Followers = min(V(spurs_net)$instagram_followers, na.rm = TRUE),
+  Median_Followers = median(V(spurs_net)$instagram_followers, na.rm = TRUE),
+  Mean_Followers = mean(V(spurs_net)$instagram_followers, na.rm = TRUE),
+  Max_Followers = max(V(spurs_net)$instagram_followers, na.rm = TRUE)
+)
+
+attribute_summary
+```
+
+```{r q4-final-graph, message=FALSE, warning=FALSE, fig.width=10, fig.height=7}
+set.seed(123)
+
+graph_tbl <- as_tbl_graph(spurs_net) %>%
+  activate(nodes) %>%
+  mutate(followers_log = log1p(instagram_followers))
+
+ggraph(graph_tbl, layout = "kk") +
+  geom_edge_link(
+    aes(width = weight),
+    colour = "grey70",
+    alpha = 0.15,
+    arrow = arrow(length = unit(2.2, "mm"), type = "closed"),
+    end_cap = circle(2.8, "mm"),
+    start_cap = circle(1.2, "mm")
+  ) +
+  scale_edge_width(range = c(0.2, 1.5), guide = "none") +
+  geom_node_point(
+    aes(size = followers_log),
+    shape = 21,
+    fill = "#6fa8dc",
+    colour = "#1f4e79",
+    stroke = 0.8
+  ) +
+  scale_size_continuous(range = c(4, 12), guide = "none") +
+  geom_node_text(
+    aes(label = name),
+    repel = TRUE,
+    size = 3.0,
+    colour = "black",
+    point.padding = unit(0.15, "lines"),
+    box.padding = unit(0.25, "lines")
+  ) +
+  labs(
+    title = "San Antonio Spurs Assist Network",
+    subtitle = "Node size = Instagram followers | Edge width = number of assists"
+  ) +
+  theme_void() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold", hjust = 0),
+    plot.subtitle = element_text(size = 10, hjust = 0),
+    plot.margin = margin(12, 12, 12, 12),
+    plot.background = element_rect(fill = "white", colour = NA)
+  )
+```
+
+# Question 5
+
+## QAP
+
+```{r}
+# Binary adjacency matrix
+spurs_adj <- as.matrix(as_adjacency_matrix(spurs_net, attr = NULL))
+spurs_adj[spurs_adj > 0] <- 1
+
+# Order followers like the adjacency matrix
+followers_ordered <- followers %>%
+  slice(match(rownames(spurs_adj), player))
+
+followers_vec <- followers_ordered$instagram_followers
+
+# Receiver popularity matrix: entry (i,j) = followers of player j
+pop_receiver <- matrix(
+  rep(followers_vec, each = length(followers_vec)),
+  nrow = length(followers_vec),
+  byrow = FALSE
+)
+
+rownames(pop_receiver) <- rownames(spurs_adj)
+colnames(pop_receiver) <- colnames(spurs_adj)
+
+# Logistic QAP regression on directed graph
+set.seed(123)
+qap_model <- netlogit(
+  spurs_adj,
+  list(pop_receiver),
+  mode = "digraph",
+  nullhyp = "qapy",
+  reps = 1000
+)
+
+summary(qap_model)
+```
+
+## Communities
+
+```{r}
+spurs_net_und <- as_undirected(
+  spurs_net,
+  mode = "collapse",
+  edge.attr.comb = list(weight = "sum")
+)
+
+# Louvain
+set.seed(123)
+spurs_louvain <- cluster_louvain(
+  spurs_net_und,
+  weights = E(spurs_net_und)$weight
+)
+
+membership(spurs_louvain)
+length(unique(membership(spurs_louvain)))
+sizes(spurs_louvain)
+
+mod_score <- modularity(spurs_louvain)
+mod_score
+
+community_members <- data.frame(
+  player = V(spurs_net_und)$name,
+  community = membership(spurs_louvain),
+  followers = V(spurs_net_und)$instagram_followers
+)
+
+community_members[order(community_members$community), ]
+```
+
+```{r, fig.width=11, fig.height=8}
+comm <- membership(spurs_louvain)
+
+lay <- layout_with_kk(spurs_net_und)
+lay <- norm_coords(lay, xmin = -1, xmax = 1, ymin = -1, ymax = 1)
+
+# Separate communities a bit more
+lay[comm == 1, 1] <- lay[comm == 1, 1] - 0.60
+lay[comm == 2, 1] <- lay[comm == 2, 1] + 0.60
+
+vertex_colors <- ifelse(comm == 1, "#F26B4F", "#8FD0F2")
+
+followers_log <- log1p(V(spurs_net_und)$instagram_followers)
+vertex_sizes <- 9 + 7 * followers_log / max(followers_log)
+
+edge_widths <- 0.2 + 1.2 * E(spurs_net_und)$weight / max(E(spurs_net_und)$weight)
+edge_cols <- adjustcolor("grey50", alpha.f = 0.12)
+
+# Shorter labels: "Victor Wembanyama" -> "V. Wembanyama"
+short_labels <- sapply(strsplit(V(spurs_net_und)$name, " "), function(x) {
+  if (length(x) >= 2) paste0(substr(x[1], 1, 1), ". ", paste(x[-1], collapse = " "))
+  else x[1]
+})
+
+label_angle <- atan2(lay[, 2], lay[, 1])
+label_dist <- 1.15
+
+plot(
+  spurs_net_und,
+  layout = lay,
+  vertex.color = vertex_colors,
+  vertex.size = vertex_sizes,
+  vertex.frame.color = "grey25",
+  vertex.label = short_labels,
+  vertex.label.cex = 0.72,
+  vertex.label.color = "black",
+  vertex.label.family = "sans",
+  vertex.label.degree = label_angle,
+  vertex.label.dist = label_dist,
+  edge.width = edge_widths,
+  edge.color = edge_cols,
+  main = "Communities in the Spurs Assist Network"
+)
+
+legend(
+  "topleft",
+  legend = c("Community 1", "Community 2"),
+  col = c("#F26B4F", "#8FD0F2"),
+  pch = 19,
+  pt.cex = 1.5,
+  bty = "n",
+  cex = 0.9
+)
+```
+
+## Statistics
+
+```{r}
+V(spurs_net_und)$community <- membership(spurs_louvain)
+
+# Top 25%
+top25_cutoff <- quantile(
+  V(spurs_net_und)$instagram_followers,
+  0.75,
+  na.rm = TRUE
+)
+
+community_stats <- data.frame(
+  player = V(spurs_net_und)$name,
+  community = V(spurs_net_und)$community,
+  followers = V(spurs_net_und)$instagram_followers
+) %>%
+  group_by(community) %>%
+  summarise(
+    n_players = n(),
+    mean_followers = round(mean(followers, na.rm = TRUE), 0),
+    median_followers = round(median(followers, na.rm = TRUE), 0),
+    share_top25 = round(100 * mean(followers >= top25_cutoff, na.rm = TRUE), 1),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    community = paste("Community", community),
+    mean_followers = format(mean_followers, big.mark = ",", scientific = FALSE),
+    median_followers = format(median_followers, big.mark = ",", scientific = FALSE),
+    share_top25 = paste0(share_top25, "%")
+  )
+
+kable(
+  community_stats,
+  col.names = c("Community", "Players", "Mean followers", "Median followers", "Top 25% share"),
+  caption = "Instagram popularity by community",
+  align = "c"
+)
+```
+
+# Question 6
+
+```{r}
+additional_df <- data.frame(
+  player = V(spurs_net)$name,
+  followers = V(spurs_net)$instagram_followers,
+  indegree_binary = igraph::degree(spurs_net, mode = "in"),
+  assists_received = igraph::strength(spurs_net, mode = "in", weights = E(spurs_net)$weight)
+)
+
+additional_df <- additional_df[order(-additional_df$assists_received), ]
+print(additional_df)
+
+# Spearman correlations
+cor_binary <- cor.test(
+  additional_df$followers,
+  additional_df$indegree_binary,
+  method = "spearman",
+  exact = FALSE
+)
+
+cor_weighted <- cor.test(
+  additional_df$followers,
+  additional_df$assists_received,
+  method = "spearman",
+  exact = FALSE
+)
+
+print(cor_binary)
+print(cor_weighted)
+
+set.seed(123)
+
+obs_cor <- cor(
+  additional_df$followers,
+  additional_df$assists_received,
+  method = "spearman"
+)
+
+perm_corr <- replicate(
+  5000,
+  cor(sample(additional_df$followers), additional_df$assists_received, method = "spearman")
+)
+
+p_one_sided <- mean(perm_corr >= obs_cor)
+p_two_sided <- mean(abs(perm_corr) >= abs(obs_cor))
+
+cat("Observed Spearman correlation:", round(obs_cor, 3), "\n")
+cat("Empirical one-sided p-value:", round(p_one_sided, 3), "\n")
+cat("Empirical two-sided p-value:", round(p_two_sided, 3), "\n")
+```
+
+```{r}
+# Less zoomed scatter plot
+short_labels <- sapply(strsplit(as.character(additional_df$player), " "), function(x) {
+  if (length(x) >= 2) {
+    paste0(substr(x[1], 1, 1), ". ", paste(x[-1], collapse = " "))
+  } else {
+    x[1]
+  }
+})
+
+x <- log10(additional_df$followers)
+y <- additional_df$assists_received
+
+# Bigger margins around the cloud of points
+x_pad <- diff(range(x)) * 0.30
+y_pad <- diff(range(y)) * 0.35
+
+label_pos <- ifelse(x < median(x), 4, 2)
+
+plot(
+  x, y,
+  pch = 19,
+  cex = 1.2,
+  xlim = c(min(x) - x_pad, max(x) + x_pad),
+  ylim = c(min(y) - y_pad, max(y) + y_pad),
+  xlab = "Log10 Instagram followers",
+  ylab = "Total assists received",
+  main = "Popularity and Total Assists Received"
+)
+
+text(
+  x, y,
+  labels = short_labels,
+  pos = label_pos,
+  offset = 0.7,
+  cex = 0.75
+)
+
+abline(lm(y ~ x), lty = 2, lwd = 2)
+```

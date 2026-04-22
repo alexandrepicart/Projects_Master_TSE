@@ -1,0 +1,401 @@
+from_player,to_player,assists,assist_points
+Chris Paul,Chris Paul,0,0
+Chris Paul,Bismack Biyombo,18,36
+Chris Paul,Harrison Barnes,106,276
+Chris Paul,De'Aaron Fox,22,51
+Chris Paul,Zach Collins,15,33
+Chris Paul,Jordan McLaughlin,1,3
+Chris Paul,Keldon Johnson,34,74
+Chris Paul,Charles Bassey,6,12
+Chris Paul,Devin Vassell,77,199
+Chris Paul,Tre Jones,4,8
+Chris Paul,David Duke Jr.,0,0
+Chris Paul,Sandro Mamukelashvili,11,28
+Chris Paul,Julian Champagnie,51,137
+Chris Paul,Malaki Branham,10,26
+Chris Paul,Blake Wesley,7,15
+Chris Paul,Jeremy Sochan,51,105
+Chris Paul,Harrison Ingram,0,0
+Chris Paul,Sidy Cissoko,0,0
+Chris Paul,Victor Wembanyama,121,301
+Chris Paul,Stephon Castle,71,166
+Bismack Biyombo,Chris Paul,4,10
+Bismack Biyombo,Bismack Biyombo,0,0
+Bismack Biyombo,Harrison Barnes,2,6
+Bismack Biyombo,De'Aaron Fox,3,8
+Bismack Biyombo,Zach Collins,0,0
+Bismack Biyombo,Jordan McLaughlin,0,0
+Bismack Biyombo,Keldon Johnson,0,0
+Bismack Biyombo,Charles Bassey,0,0
+Bismack Biyombo,Devin Vassell,15,35
+Bismack Biyombo,Tre Jones,0,0
+Bismack Biyombo,David Duke Jr.,0,0
+Bismack Biyombo,Sandro Mamukelashvili,0,0
+Bismack Biyombo,Julian Champagnie,0,0
+Bismack Biyombo,Malaki Branham,1,3
+Bismack Biyombo,Blake Wesley,1,2
+Bismack Biyombo,Jeremy Sochan,0,0
+Bismack Biyombo,Harrison Ingram,0,0
+Bismack Biyombo,Sidy Cissoko,0,0
+Bismack Biyombo,Victor Wembanyama,0,0
+Bismack Biyombo,Stephon Castle,5,13
+Harrison Barnes,Chris Paul,12,33
+Harrison Barnes,Bismack Biyombo,1,2
+Harrison Barnes,Harrison Barnes,0,0
+Harrison Barnes,De'Aaron Fox,3,7
+Harrison Barnes,Zach Collins,0,0
+Harrison Barnes,Jordan McLaughlin,0,0
+Harrison Barnes,Keldon Johnson,7,17
+Harrison Barnes,Charles Bassey,1,2
+Harrison Barnes,Devin Vassell,25,64
+Harrison Barnes,Tre Jones,3,7
+Harrison Barnes,David Duke Jr.,0,0
+Harrison Barnes,Sandro Mamukelashvili,6,14
+Harrison Barnes,Julian Champagnie,17,45
+Harrison Barnes,Malaki Branham,0,0
+Harrison Barnes,Blake Wesley,6,16
+Harrison Barnes,Jeremy Sochan,6,13
+Harrison Barnes,Harrison Ingram,0,0
+Harrison Barnes,Sidy Cissoko,0,0
+Harrison Barnes,Victor Wembanyama,33,77
+Harrison Barnes,Stephon Castle,16,40
+De'Aaron Fox,Chris Paul,8,23
+De'Aaron Fox,Bismack Biyombo,9,18
+De'Aaron Fox,Harrison Barnes,19,49
+De'Aaron Fox,De'Aaron Fox,0,0
+De'Aaron Fox,Zach Collins,0,0
+De'Aaron Fox,Jordan McLaughlin,0,0
+De'Aaron Fox,Keldon Johnson,10,22
+De'Aaron Fox,Charles Bassey,1,2
+De'Aaron Fox,Devin Vassell,10,27
+De'Aaron Fox,Tre Jones,0,0
+De'Aaron Fox,David Duke Jr.,0,0
+De'Aaron Fox,Sandro Mamukelashvili,3,8
+De'Aaron Fox,Julian Champagnie,10,26
+De'Aaron Fox,Malaki Branham,0,0
+De'Aaron Fox,Blake Wesley,0,0
+De'Aaron Fox,Jeremy Sochan,19,43
+De'Aaron Fox,Harrison Ingram,0,0
+De'Aaron Fox,Sidy Cissoko,0,0
+De'Aaron Fox,Victor Wembanyama,10,22
+De'Aaron Fox,Stephon Castle,17,42
+Zach Collins,Chris Paul,1,3
+Zach Collins,Bismack Biyombo,0,0
+Zach Collins,Harrison Barnes,1,2
+Zach Collins,De'Aaron Fox,0,0
+Zach Collins,Zach Collins,0,0
+Zach Collins,Jordan McLaughlin,0,0
+Zach Collins,Keldon Johnson,5,10
+Zach Collins,Charles Bassey,0,0
+Zach Collins,Devin Vassell,17,34
+Zach Collins,Tre Jones,0,0
+Zach Collins,David Duke Jr.,0,0
+Zach Collins,Sandro Mamukelashvili,4,10
+Zach Collins,Julian Champagnie,9,21
+Zach Collins,Malaki Branham,5,11
+Zach Collins,Blake Wesley,4,8
+Zach Collins,Jeremy Sochan,4,9
+Zach Collins,Harrison Ingram,0,0
+Zach Collins,Sidy Cissoko,0,0
+Zach Collins,Victor Wembanyama,0,0
+Zach Collins,Stephon Castle,2,4
+Jordan McLaughlin,Chris Paul,0,0
+Jordan McLaughlin,Bismack Biyombo,1,2
+Jordan McLaughlin,Harrison Barnes,1,3
+Jordan McLaughlin,De'Aaron Fox,0,0
+Jordan McLaughlin,Zach Collins,0,0
+Jordan McLaughlin,Jordan McLaughlin,0,0
+Jordan McLaughlin,Keldon Johnson,1,2
+Jordan McLaughlin,Charles Bassey,1,2
+Jordan McLaughlin,Devin Vassell,0,0
+Jordan McLaughlin,Tre Jones,0,0
+Jordan McLaughlin,David Duke Jr.,1,3
+Jordan McLaughlin,Sandro Mamukelashvili,4,11
+Jordan McLaughlin,Julian Champagnie,4,10
+Jordan McLaughlin,Malaki Branham,9,21
+Jordan McLaughlin,Blake Wesley,4,9
+Jordan McLaughlin,Jeremy Sochan,0,0
+Jordan McLaughlin,Harrison Ingram,0,0
+Jordan McLaughlin,Sidy Cissoko,0,0
+Jordan McLaughlin,Victor Wembanyama,0,0
+Jordan McLaughlin,Stephon Castle,1,2
+Keldon Johnson,Chris Paul,2,6
+Keldon Johnson,Bismack Biyombo,0,0
+Keldon Johnson,Harrison Barnes,7,19
+Keldon Johnson,De'Aaron Fox,5,12
+Keldon Johnson,Zach Collins,3,8
+Keldon Johnson,Jordan McLaughlin,0,0
+Keldon Johnson,Keldon Johnson,0,0
+Keldon Johnson,Charles Bassey,8,16
+Keldon Johnson,Devin Vassell,17,42
+Keldon Johnson,Tre Jones,4,10
+Keldon Johnson,David Duke Jr.,0,0
+Keldon Johnson,Sandro Mamukelashvili,6,15
+Keldon Johnson,Julian Champagnie,25,69
+Keldon Johnson,Malaki Branham,3,9
+Keldon Johnson,Blake Wesley,5,12
+Keldon Johnson,Jeremy Sochan,19,42
+Keldon Johnson,Harrison Ingram,0,0
+Keldon Johnson,Sidy Cissoko,0,0
+Keldon Johnson,Victor Wembanyama,6,16
+Keldon Johnson,Stephon Castle,15,35
+Charles Bassey,Chris Paul,0,0
+Charles Bassey,Bismack Biyombo,0,0
+Charles Bassey,Harrison Barnes,1,3
+Charles Bassey,De'Aaron Fox,0,0
+Charles Bassey,Zach Collins,0,0
+Charles Bassey,Jordan McLaughlin,0,0
+Charles Bassey,Keldon Johnson,4,9
+Charles Bassey,Charles Bassey,0,0
+Charles Bassey,Devin Vassell,3,6
+Charles Bassey,Tre Jones,0,0
+Charles Bassey,David Duke Jr.,1,2
+Charles Bassey,Sandro Mamukelashvili,2,5
+Charles Bassey,Julian Champagnie,3,8
+Charles Bassey,Malaki Branham,1,2
+Charles Bassey,Blake Wesley,1,2
+Charles Bassey,Jeremy Sochan,0,0
+Charles Bassey,Harrison Ingram,0,0
+Charles Bassey,Sidy Cissoko,0,0
+Charles Bassey,Victor Wembanyama,0,0
+Charles Bassey,Stephon Castle,1,2
+Devin Vassell,Chris Paul,8,22
+Devin Vassell,Bismack Biyombo,5,10
+Devin Vassell,Harrison Barnes,25,67
+Devin Vassell,De'Aaron Fox,9,22
+Devin Vassell,Zach Collins,4,9
+Devin Vassell,Jordan McLaughlin,0,0
+Devin Vassell,Keldon Johnson,24,59
+Devin Vassell,Charles Bassey,2,4
+Devin Vassell,Devin Vassell,0,0
+Devin Vassell,Tre Jones,2,5
+Devin Vassell,David Duke Jr.,0,0
+Devin Vassell,Sandro Mamukelashvili,4,10
+Devin Vassell,Julian Champagnie,14,41
+Devin Vassell,Malaki Branham,0,0
+Devin Vassell,Blake Wesley,1,2
+Devin Vassell,Jeremy Sochan,14,34
+Devin Vassell,Harrison Ingram,0,0
+Devin Vassell,Sidy Cissoko,0,0
+Devin Vassell,Victor Wembanyama,43,97
+Devin Vassell,Stephon Castle,28,65
+Tre Jones,Chris Paul,1,3
+Tre Jones,Bismack Biyombo,0,0
+Tre Jones,Harrison Barnes,10,25
+Tre Jones,De'Aaron Fox,0,0
+Tre Jones,Zach Collins,0,0
+Tre Jones,Jordan McLaughlin,0,0
+Tre Jones,Keldon Johnson,27,65
+Tre Jones,Charles Bassey,5,10
+Tre Jones,Devin Vassell,13,37
+Tre Jones,Tre Jones,0,0
+Tre Jones,David Duke Jr.,0,0
+Tre Jones,Sandro Mamukelashvili,1,3
+Tre Jones,Julian Champagnie,15,43
+Tre Jones,Malaki Branham,1,2
+Tre Jones,Blake Wesley,1,2
+Tre Jones,Jeremy Sochan,5,12
+Tre Jones,Harrison Ingram,0,0
+Tre Jones,Sidy Cissoko,0,0
+Tre Jones,Victor Wembanyama,16,41
+Tre Jones,Stephon Castle,9,22
+David Duke Jr.,Chris Paul,0,0
+David Duke Jr.,Bismack Biyombo,0,0
+David Duke Jr.,Harrison Barnes,0,0
+David Duke Jr.,De'Aaron Fox,0,0
+David Duke Jr.,Zach Collins,0,0
+David Duke Jr.,Jordan McLaughlin,1,2
+David Duke Jr.,Keldon Johnson,0,0
+David Duke Jr.,Charles Bassey,0,0
+David Duke Jr.,Devin Vassell,0,0
+David Duke Jr.,Tre Jones,0,0
+David Duke Jr.,David Duke Jr.,0,0
+David Duke Jr.,Sandro Mamukelashvili,1,2
+David Duke Jr.,Julian Champagnie,0,0
+David Duke Jr.,Malaki Branham,0,0
+David Duke Jr.,Blake Wesley,1,2
+David Duke Jr.,Jeremy Sochan,0,0
+David Duke Jr.,Harrison Ingram,0,0
+David Duke Jr.,Sidy Cissoko,1,3
+David Duke Jr.,Victor Wembanyama,0,0
+David Duke Jr.,Stephon Castle,0,0
+Sandro Mamukelashvili,Chris Paul,4,10
+Sandro Mamukelashvili,Bismack Biyombo,1,2
+Sandro Mamukelashvili,Harrison Barnes,3,7
+Sandro Mamukelashvili,De'Aaron Fox,2,5
+Sandro Mamukelashvili,Zach Collins,0,0
+Sandro Mamukelashvili,Jordan McLaughlin,1,3
+Sandro Mamukelashvili,Keldon Johnson,8,18
+Sandro Mamukelashvili,Charles Bassey,1,2
+Sandro Mamukelashvili,Devin Vassell,0,0
+Sandro Mamukelashvili,Tre Jones,0,0
+Sandro Mamukelashvili,David Duke Jr.,0,0
+Sandro Mamukelashvili,Sandro Mamukelashvili,0,0
+Sandro Mamukelashvili,Julian Champagnie,9,25
+Sandro Mamukelashvili,Malaki Branham,2,6
+Sandro Mamukelashvili,Blake Wesley,4,9
+Sandro Mamukelashvili,Jeremy Sochan,2,5
+Sandro Mamukelashvili,Harrison Ingram,0,0
+Sandro Mamukelashvili,Sidy Cissoko,1,2
+Sandro Mamukelashvili,Victor Wembanyama,6,13
+Sandro Mamukelashvili,Stephon Castle,4,12
+Julian Champagnie,Chris Paul,4,12
+Julian Champagnie,Bismack Biyombo,3,6
+Julian Champagnie,Harrison Barnes,9,21
+Julian Champagnie,De'Aaron Fox,2,4
+Julian Champagnie,Zach Collins,5,11
+Julian Champagnie,Jordan McLaughlin,0,0
+Julian Champagnie,Keldon Johnson,23,55
+Julian Champagnie,Charles Bassey,2,4
+Julian Champagnie,Devin Vassell,4,10
+Julian Champagnie,Tre Jones,4,10
+Julian Champagnie,David Duke Jr.,0,0
+Julian Champagnie,Sandro Mamukelashvili,11,27
+Julian Champagnie,Julian Champagnie,0,0
+Julian Champagnie,Malaki Branham,2,5
+Julian Champagnie,Blake Wesley,6,13
+Julian Champagnie,Jeremy Sochan,14,30
+Julian Champagnie,Harrison Ingram,0,0
+Julian Champagnie,Sidy Cissoko,0,0
+Julian Champagnie,Victor Wembanyama,14,32
+Julian Champagnie,Stephon Castle,8,17
+Malaki Branham,Chris Paul,2,6
+Malaki Branham,Bismack Biyombo,1,2
+Malaki Branham,Harrison Barnes,6,16
+Malaki Branham,De'Aaron Fox,0,0
+Malaki Branham,Zach Collins,3,7
+Malaki Branham,Jordan McLaughlin,1,3
+Malaki Branham,Keldon Johnson,2,4
+Malaki Branham,Charles Bassey,3,6
+Malaki Branham,Devin Vassell,0,0
+Malaki Branham,Tre Jones,0,0
+Malaki Branham,David Duke Jr.,0,0
+Malaki Branham,Sandro Mamukelashvili,6,15
+Malaki Branham,Julian Champagnie,3,7
+Malaki Branham,Malaki Branham,0,0
+Malaki Branham,Blake Wesley,1,2
+Malaki Branham,Jeremy Sochan,1,2
+Malaki Branham,Harrison Ingram,0,0
+Malaki Branham,Sidy Cissoko,1,3
+Malaki Branham,Victor Wembanyama,5,10
+Malaki Branham,Stephon Castle,3,7
+Blake Wesley,Chris Paul,0,0
+Blake Wesley,Bismack Biyombo,5,10
+Blake Wesley,Harrison Barnes,4,12
+Blake Wesley,De'Aaron Fox,0,0
+Blake Wesley,Zach Collins,8,19
+Blake Wesley,Jordan McLaughlin,5,15
+Blake Wesley,Keldon Johnson,11,25
+Blake Wesley,Charles Bassey,4,8
+Blake Wesley,Devin Vassell,4,10
+Blake Wesley,Tre Jones,1,2
+Blake Wesley,David Duke Jr.,1,3
+Blake Wesley,Sandro Mamukelashvili,27,67
+Blake Wesley,Julian Champagnie,12,32
+Blake Wesley,Malaki Branham,12,33
+Blake Wesley,Blake Wesley,0,0
+Blake Wesley,Jeremy Sochan,4,8
+Blake Wesley,Harrison Ingram,0,0
+Blake Wesley,Sidy Cissoko,5,11
+Blake Wesley,Victor Wembanyama,4,10
+Blake Wesley,Stephon Castle,7,16
+Jeremy Sochan,Chris Paul,17,46
+Jeremy Sochan,Bismack Biyombo,0,0
+Jeremy Sochan,Harrison Barnes,7,18
+Jeremy Sochan,De'Aaron Fox,5,12
+Jeremy Sochan,Zach Collins,6,15
+Jeremy Sochan,Jordan McLaughlin,0,0
+Jeremy Sochan,Keldon Johnson,28,65
+Jeremy Sochan,Charles Bassey,1,2
+Jeremy Sochan,Devin Vassell,20,45
+Jeremy Sochan,Tre Jones,0,0
+Jeremy Sochan,David Duke Jr.,0,0
+Jeremy Sochan,Sandro Mamukelashvili,3,9
+Jeremy Sochan,Julian Champagnie,10,27
+Jeremy Sochan,Malaki Branham,0,0
+Jeremy Sochan,Blake Wesley,2,5
+Jeremy Sochan,Jeremy Sochan,0,0
+Jeremy Sochan,Harrison Ingram,0,0
+Jeremy Sochan,Sidy Cissoko,0,0
+Jeremy Sochan,Victor Wembanyama,15,36
+Jeremy Sochan,Stephon Castle,14,29
+Harrison Ingram,Chris Paul,0,0
+Harrison Ingram,Bismack Biyombo,0,0
+Harrison Ingram,Harrison Barnes,0,0
+Harrison Ingram,De'Aaron Fox,0,0
+Harrison Ingram,Zach Collins,0,0
+Harrison Ingram,Jordan McLaughlin,0,0
+Harrison Ingram,Keldon Johnson,0,0
+Harrison Ingram,Charles Bassey,0,0
+Harrison Ingram,Devin Vassell,0,0
+Harrison Ingram,Tre Jones,0,0
+Harrison Ingram,David Duke Jr.,1,3
+Harrison Ingram,Sandro Mamukelashvili,0,0
+Harrison Ingram,Julian Champagnie,0,0
+Harrison Ingram,Malaki Branham,2,5
+Harrison Ingram,Blake Wesley,0,0
+Harrison Ingram,Jeremy Sochan,0,0
+Harrison Ingram,Harrison Ingram,0,0
+Harrison Ingram,Sidy Cissoko,0,0
+Harrison Ingram,Victor Wembanyama,0,0
+Harrison Ingram,Stephon Castle,0,0
+Sidy Cissoko,Chris Paul,0,0
+Sidy Cissoko,Bismack Biyombo,0,0
+Sidy Cissoko,Harrison Barnes,0,0
+Sidy Cissoko,De'Aaron Fox,0,0
+Sidy Cissoko,Zach Collins,0,0
+Sidy Cissoko,Jordan McLaughlin,0,0
+Sidy Cissoko,Keldon Johnson,0,0
+Sidy Cissoko,Charles Bassey,2,4
+Sidy Cissoko,Devin Vassell,0,0
+Sidy Cissoko,Tre Jones,0,0
+Sidy Cissoko,David Duke Jr.,0,0
+Sidy Cissoko,Sandro Mamukelashvili,2,6
+Sidy Cissoko,Julian Champagnie,0,0
+Sidy Cissoko,Malaki Branham,0,0
+Sidy Cissoko,Blake Wesley,1,2
+Sidy Cissoko,Jeremy Sochan,0,0
+Sidy Cissoko,Harrison Ingram,0,0
+Sidy Cissoko,Sidy Cissoko,0,0
+Sidy Cissoko,Victor Wembanyama,0,0
+Sidy Cissoko,Stephon Castle,1,3
+Victor Wembanyama,Chris Paul,17,45
+Victor Wembanyama,Bismack Biyombo,0,0
+Victor Wembanyama,Harrison Barnes,15,35
+Victor Wembanyama,De'Aaron Fox,4,9
+Victor Wembanyama,Zach Collins,0,0
+Victor Wembanyama,Jordan McLaughlin,0,0
+Victor Wembanyama,Keldon Johnson,22,51
+Victor Wembanyama,Charles Bassey,0,0
+Victor Wembanyama,Devin Vassell,26,63
+Victor Wembanyama,Tre Jones,4,8
+Victor Wembanyama,David Duke Jr.,0,0
+Victor Wembanyama,Sandro Mamukelashvili,4,10
+Victor Wembanyama,Julian Champagnie,16,40
+Victor Wembanyama,Malaki Branham,2,5
+Victor Wembanyama,Blake Wesley,4,8
+Victor Wembanyama,Jeremy Sochan,30,61
+Victor Wembanyama,Harrison Ingram,0,0
+Victor Wembanyama,Sidy Cissoko,0,0
+Victor Wembanyama,Victor Wembanyama,0,0
+Victor Wembanyama,Stephon Castle,24,52
+Stephon Castle,Chris Paul,13,36
+Stephon Castle,Bismack Biyombo,9,18
+Stephon Castle,Harrison Barnes,49,124
+Stephon Castle,De'Aaron Fox,2,5
+Stephon Castle,Zach Collins,9,18
+Stephon Castle,Jordan McLaughlin,1,2
+Stephon Castle,Keldon Johnson,50,114
+Stephon Castle,Charles Bassey,16,32
+Stephon Castle,Devin Vassell,34,94
+Stephon Castle,Tre Jones,4,10
+Stephon Castle,David Duke Jr.,0,0
+Stephon Castle,Sandro Mamukelashvili,19,48
+Stephon Castle,Julian Champagnie,47,132
+Stephon Castle,Malaki Branham,9,22
+Stephon Castle,Blake Wesley,9,23
+Stephon Castle,Jeremy Sochan,24,49
+Stephon Castle,Harrison Ingram,1,2
+Stephon Castle,Sidy Cissoko,0,0
+Stephon Castle,Victor Wembanyama,36,85
+Stephon Castle,Stephon Castle,0,0
