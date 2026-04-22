@@ -15,6 +15,11 @@ The objective was to identify promising locations for future retail store openin
 
 [Open the Shiny app](https://alexandrepicart.shinyapps.io/final_project/)
 
+
+## Preview
+
+![Shiny dashboard](./images/app_overview.png)
+
 ## Files
 
 - `Final_project_report.pdf`: final written report
