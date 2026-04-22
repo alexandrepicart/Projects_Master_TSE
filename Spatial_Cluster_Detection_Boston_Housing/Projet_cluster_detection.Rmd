@@ -1,0 +1,945 @@
+---
+title: "Boston v2"
+author: "Rémi Lahay Lucien Mirlicourtois Anas Naji Alexandre Picart"
+date: "2026-03-11"
+output: html_document
+---
+
+Les packages:
+
+```{r}
+library(spData)
+library(sf)
+library(dplyr)
+library(leaflet)
+library(spdep)
+library(ggplot2)
+library(rsatscan)
+library(spatialreg)
+```
+
+# Données
+
+```{r}
+data(boston)
+```
+
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+df = st_as_sf(
+  boston.c,
+  coords = c("LON", "LAT"),
+  remove = FALSE,   # garde Easting/Northing dans la table
+  crs = NA          # ou 27700 si tu es sûr du CRS (voir plus bas)
+)
+
+st_geometry_type(df)
+```
+
+# Exploration des données
+
+# Scan test sur le CRIM
+
+```{r, message=FALSE, warning=FALSE}
+# df doit être en WGS84 pour leaflet
+if (is.na(st_crs(df))) df <- st_set_crs(df, 4326)
+df_wgs <- st_transform(df, 4326)
+
+# variable à cartographier
+df_wgs$crim_log <- log1p(df_wgs$CRIM)
+
+# palette en classes (quantiles) => nuances plus visibles
+bins <- quantile(df_wgs$crim_log, probs = seq(0, 1, by = 0.1), na.rm = TRUE)
+pal  <- colorBin(palette = "YlOrRd", domain = df_wgs$crim_log, bins = bins, na.color = "#BDBDBD")
+
+leaflet(df_wgs) %>%
+  addProviderTiles(providers$CartoDB.PositronNoLabels) %>%
+  addCircleMarkers(
+    radius = 4,
+    stroke = FALSE,
+    fillOpacity = 0.85,
+    color = ~pal(crim_log),
+    popup = ~paste0("CRIM: ", signif(CRIM, 4), "<br>log1p(CRIM): ", signif(crim_log, 4))
+  ) %>%
+  addLegend("bottomright", pal = pal, values = ~crim_log, title = "log1p(CRIM)")
+```
+
+```{r}
+# vérifie
+exists("ssenv", inherits = FALSE)
+
+# recharge le package (recrée ssenv)
+detach("package:rsatscan", unload = TRUE)  # si déjà attaché
+library(rsatscan)
+
+# maintenant ça doit marcher
+invisible(ss.options(reset = TRUE))
+```
+
+```{r,inclue = FALSE}
+# CRS : pour ellipse => cartésien (mètres)
+if (is.na(st_crs(df))) df <- st_set_crs(df, 4326)
+if (isTRUE(st_is_longlat(st_crs(df)))) df <- st_transform(df, 3857)
+
+# variable continue (recommandé: log + standardisation)
+y <- log1p(df$CRIM)
+y <- as.numeric(scale(y))
+
+# enlever NA/inf
+ok <- is.finite(y)
+df <- df[ok, ]
+y <- y[ok]
+
+# IMPORTANT : locid créé APRÈS filtrage
+df$locid <- seq_len(nrow(df))
+xy <- st_coordinates(df)
+
+# --- 1) écrire fichiers SaTScan ---
+td <- file.path(tempdir(), "satscan_crim")
+dir.create(td, showWarnings = FALSE, recursive = TRUE)
+
+geo <- data.frame(locid = df$locid, X = xy[,1], Y = xy[,2])
+write.table(geo, file.path(td, "crim.geo"),
+            sep = " ", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+options(OutDec = ".")
+cas <- data.frame(locid = df$locid, n = 1, y = y)
+write.table(cas, file.path(td, "crim.cas"),
+            sep = " ", row.names = FALSE, col.names = FALSE, quote = FALSE)
+
+# --- 2) paramètres SaTScan ---
+# si ss.options() plante avec ssenv: detach("package:rsatscan", unload=TRUE); library(rsatscan)
+invisible(ss.options(reset = TRUE))
+
+ss.options(list(
+  CaseFile = "crim.cas",
+  CoordinatesFile = "crim.geo",
+  CoordinatesType = 0,                 # cartésien
+  PrecisionCaseTimes = 0,              # pas de date/temps
+  AnalysisType = 1,                    # purely spatial
+  ModelType = 5,                       # Normal model (continuous)
+  ScanAreas = 3,                       # high OR low
+  MonteCarloReps = 999,
+  MaxSpatialSizeInPopulationAtRisk = 50,
+  SpatialWindowShapeType = 1,          # ellipse
+  # évite clusters de 1 point
+  MinimumCasesInHighRateClusters = 20,
+  MinimumCasesInLowRateClusters  = 20,
+  ResultsFile = "crim_scan",
+  LogRunToHistoryFile = "n"
+))
+write.ss.prm(td, "crim_scan")
+
+# --- 3) run SaTScan ---
+# Windows:
+ssloc <- "C:/Program Files/SaTScan"
+batch <- "SaTScanBatch64"
+
+res_crim <- satscan(
+  prmlocation = td,
+  prmfilename = "crim_scan",
+  sslocation = ssloc,
+  ssbatchfilename = batch,
+  verbose = TRUE
+)
+
+summary(res_crim)
+names(res_crim)
+```
+
+```{r}
+summary(res_crim)        # résumé lisible
+names(res_crim)          # voir les tables dispo
+res_crim$col             # table des clusters (souvent la plus utile)
+res_crim$sci             # infos complémentaires (selon sorties activées)
+```
+
+```{r}
+df$locid <- seq_len(nrow(df))
+
+gis_crim <- res_crim$gis
+
+loc_col <- names(gis_crim)[grepl("loc", names(gis_crim), ignore.case = TRUE) & grepl("id", names(gis_crim), ignore.case = TRUE)][1]
+clu_col <- names(gis_crim)[grepl("cluster", names(gis_crim), ignore.case = TRUE)][1]
+
+if (is.na(loc_col) || is.na(clu_col)) {
+  stop("Je ne trouve pas les colonnes locid/cluster dans res$gis. Fais names(res$gis) pour voir les noms exacts.")
+}
+
+df$cluster_id <- gis_crim[[clu_col]][match(df$locid, gis_crim[[loc_col]])]
+df$cluster_id[is.na(df$cluster_id)] <- 0L
+
+table(df$cluster_id)
+```
+
+```{r}
+# si CRS manquant, définis-le avant st_transform
+# sf0 <- st_set_crs(sf0, 4326)  # si déjà lon/lat
+df <- st_transform(df, 4326)
+
+df$cluster <- ifelse(df$cluster == 0, "0_out", paste0("C", df$cluster))
+df$cluster <- factor(df$cluster)
+
+pal <- colorFactor("Set1", domain = df$cluster)
+
+leaflet(df) %>%
+  addProviderTiles(providers$CartoDB.Positron) %>%
+  addCircleMarkers(
+    radius = 4,
+    stroke = FALSE,
+    fillOpacity = 0.85,
+    color = ~pal(cluster),
+    popup = ~paste0("locid: ", locid, "<br>cluster: ", cluster)
+  ) %>%
+  addLegend("bottomright", pal = pal, values = ~cluster, title = "Clusters")
+```
+
+# Most Likely Clusters :
+
+```{r}
+names(res_crim$col)
+```
+
+```{r}
+# --- tables SaTScan
+col_tbl <- res_crim$col
+gis_tbl <- res_crim$gis
+
+# --- 1) Most Likely Cluster = 1re ligne
+mlc_cluster <- col_tbl$CLUSTER[1]
+
+# --- 2) LOC_ID du MLC
+mlc_locid <- unique(gis_tbl$LOC_ID[gis_tbl$CLUSTER == mlc_cluster])
+
+if (length(mlc_locid) == 0) {
+  stop("Aucun LOC_ID trouvé pour le Most Likely Cluster.")
+}
+
+# --- 3) fichier d'exclusion
+exclude_file <- file.path(td, "exclude.txt")
+
+write.table(
+  mlc_locid,
+  file = exclude_file,
+  row.names = FALSE,
+  col.names = FALSE,
+  quote = FALSE
+)
+
+readLines(exclude_file, n = 10)
+
+# --- 4) vérifier quels fichiers existent vraiment dans td
+list.files(td)
+
+# adapte ici si tes fichiers s'appellent house.cas / house.geo
+case_file_name <- "crim.cas"
+geo_file_name  <- "crim.geo"
+
+
+
+# --- 5) paramètres standards
+ss.options(list(
+  CaseFile = "C:/Users/lmirl/AppData/Local/Temp/RtmpkvV0Pk/satscan_crim/crim.cas",
+  CoordinatesFile = "C:/Users/lmirl/AppData/Local/Temp/RtmpkvV0Pk/satscan_crim/crim.geo",
+  CoordinatesType = 0,
+  PrecisionCaseTimes = 0,
+  AnalysisType = 1,
+  ModelType = 5,
+  ScanAreas = 3,
+  MonteCarloReps = 999,
+  MaxSpatialSizeInPopulationAtRisk = 50,
+  SpatialWindowShapeType = 1,
+  MinimumCasesInHighRateClusters = 20,
+  MinimumCasesInLowRateClusters = 20,
+  ResultsFile = "crim_secondary",
+  LogRunToHistoryFile = "n"
+))
+
+# --- 6) paramètres extra : ExcludeFile
+ss.options.extra(list(
+  ExcludeFile = "exclude.txt"
+))
+
+write.ss.prm(td, "crim_secondary")
+
+# --- 7) relancer SaTScan
+res_secondary <- satscan(
+  prmlocation = td,
+  prmfilename = "crim_secondary",
+  sslocation = ssloc,
+  ssbatchfilename = batch,
+  verbose = TRUE
+)
+
+summary(res_secondary)
+```
+
+```{r}
+# vérifier les vrais fichiers présents
+list.files(td)
+
+case_file <- normalizePath(file.path(td, "crim.cas"), winslash = "\\", mustWork = TRUE)
+geo_file  <- normalizePath(file.path(td, "crim.geo"),  winslash = "\\", mustWork = TRUE)
+excl_file <- normalizePath(file.path(td, "exclude.txt"), winslash = "\\", mustWork = TRUE)
+
+case_file
+geo_file
+excl_file
+```
+
+```{r}
+summary(res_secondary)
+```
+
+```{r}
+summary(res_crim)
+```
+
+# Modèle OLS :
+
+```{r}
+yvar  <- "CMEDV"                    
+xvars <- c("CRIM", "ZN", "INDUS", "AGE", "TAX", "PTRATIO")
+
+
+fml <- as.formula(paste(yvar, "~", paste(xvars, collapse = " + ")))
+m0 <- lm(fml, data = df)
+
+# résidus (tu peux aussi mettre rstandard(m0))
+df$resid0 <- residuals(m0)
+df$resid0 <- as.numeric(scale(df$resid0))  # optionnel mais souvent pratique
+
+```
+
+```{r}
+summary(m0)
+```
+
+Test de Moran
+
+```{r}
+coords <- st_coordinates(df)
+knn <- knearneigh(coords, k = 8)
+nb <- knn2nb(knn)
+listw <- nb2listw(nb, style = "W")
+```
+
+```{r}
+moran.test(df$resid0, listw)
+```
+
+```{r}
+for (k in c(5, 8, 10, 15)) {
+  knn <- knearneigh(coords, k = k)
+  nb <- knn2nb(knn)
+  lw <- nb2listw(nb, style = "W")
+  print(k)
+  print(moran.test(df$resid0, lw))
+}
+```
+
+```{r, include =FALSE}
+st_crs(df) # devrait être NA 
+df <- st_set_crs(df, 4326)
+```
+
+```{r}
+m <- st_transform(df, 4326)
+
+lim <- 4
+m$resid0_clip <- pmax(pmin(m$resid0, lim), -lim)
+
+pal <- colorNumeric(
+  palette = colorRampPalette(c("blue", "white", "red"))(256),
+  domain = c(-lim, lim),
+  na.color = "#BDBDBD"
+)
+
+leaflet(m) %>%
+  addProviderTiles(providers$CartoDB.PositronNoLabels) %>%
+  addCircleMarkers(
+    radius = 4,
+    stroke = FALSE,
+    fillOpacity = 0.8,
+    color = ~pal(resid0_clip),
+    popup = ~paste0(
+      "resid0: ", signif(resid0, 4),
+      "<br>resid0 (clip): ", signif(resid0_clip, 4)
+    )
+  ) %>%
+  addLegend(
+    position = "bottomright",
+    pal = pal,
+    values = ~resid0_clip,
+    title = "Résidus (clip [-4, 4])"
+  )
+```
+
+```{r}
+# 1) IMPORTANT : ellipse => coordonnées cartésiennes (pas lon/lat)
+if (isTRUE(sf::st_is_longlat(sf::st_crs(df)))) {
+  df <- sf::st_transform(df, 3857)
+}
+
+# 2) variable à scanner
+y <- df$resid0
+
+# 3) enlever les NA / valeurs non finies
+df <- df[is.finite(df$resid0), ]
+y  <- df$resid0
+
+# 4) IDs directement dans df
+df$locid <- seq_len(nrow(df))
+
+# 5) coordonnées
+xy <- sf::st_coordinates(df)
+
+td <- file.path(tempdir(), "satscan_house")
+dir.create(td, showWarnings = FALSE, recursive = TRUE)
+
+geo2 <- data.frame(
+  locid = df$locid,
+  X = xy[, 1],
+  Y = xy[, 2]
+)
+
+write.table(
+  geo2,
+  file = file.path(td, "house.geo"),
+  sep = " ",
+  row.names = FALSE,
+  col.names = FALSE,
+  quote = FALSE
+)
+
+readLines(file.path(td, "house.geo"), n = 5)
+
+# 6) forcer le séparateur décimal à "."
+options(OutDec = ".")
+
+# 7) fichier cas : LocationID, n, y
+cas <- data.frame(
+  locid = df$locid,
+  n = 1,
+  y = df$resid0
+)
+
+write.table(
+  cas,
+  file = file.path(td, "house.cas"),
+  sep = " ",
+  row.names = FALSE,
+  col.names = FALSE,
+  quote = FALSE
+)
+
+readLines(file.path(td, "house.cas"), n = 5)
+```
+
+```{r, include =FALSE}
+invisible(ss.options(reset = TRUE))
+
+ss.options(list(
+  CaseFile = "house.cas",
+  CoordinatesFile = "house.geo",
+  CoordinatesType = 0,                 # 0=cartésien
+  PrecisionCaseTimes = 0,              # pas de temps
+  AnalysisType = 1,                    # purely spatial
+  ModelType = 5,                       # normal model (continuous)
+  ScanAreas = 3,                       # high OR low
+  MonteCarloReps = 999,                # B=999 (papier)
+  MaxSpatialSizeInPopulationAtRisk = 50,
+  SpatialWindowShapeType = 1,          # elliptic window
+  NonCompactnessPenalty = 0,           # pas de pénalité
+  ResultsFile = "house_scan",
+  LogRunToHistoryFile = "n"
+))
+
+write.ss.prm(td, "house_scan")         # -> house_scan.prm
+```
+
+```{r}
+res_m0 <- satscan(
+  prmlocation = td,
+  prmfilename = "house_scan",
+  sslocation = "/Program Files/SaTScan",  
+  ssbatchfilename = "SaTScanBatch64",        
+  verbose = TRUE
+)
+```
+
+```{r}
+summary(res_m0)        # résumé lisible
+names(res_m0)          # voir les tables dispo
+res_m0$col             # table des clusters (souvent la plus utile)
+res_m0$sci 
+```
+
+```{r}
+gis_m0 <- res_m0$gis
+
+loc_col <- names(gis_m0)[grepl("loc", names(gis_m0), ignore.case = TRUE) &
+                        grepl("id", names(gis_m0), ignore.case = TRUE)][1]
+clu_col <- names(gis_m0)[grepl("cluster", names(gis_m0), ignore.case = TRUE)][1]
+
+if (is.na(loc_col) || is.na(clu_col)) {
+  stop("Je ne trouve pas les colonnes locid/cluster dans res$gis. Fais names(res$gis) pour voir les noms exacts.")
+}
+
+df$cluster_id_scan <- gis_m0[[clu_col]][match(df$locid, gis_m0[[loc_col]])]
+df$cluster_id_scan[is.na(df$cluster_id_scan)] <- 0L
+
+table(df$cluster_id_scan)
+
+```
+
+```{r}
+df_wgs <- st_transform(df, 4326)
+
+df_wgs$cluster <- ifelse(df_wgs$cluster_id == 0, "0_out", paste0("C", df_wgs$cluster_id))
+df_wgs$cluster <- factor(df_wgs$cluster)
+
+pal <- colorFactor("Set1", domain = df_wgs$cluster)
+
+leaflet(df_wgs) %>%
+  addProviderTiles(providers$CartoDB.PositronNoLabels) %>%
+  addCircleMarkers(
+    radius = 4,
+    stroke = FALSE,
+    fillOpacity = 0.8,
+    color = ~pal(cluster),
+    popup = ~paste0("locid: ", locid, "<br>cluster: ", cluster)
+  ) %>%
+  addLegend(
+    "bottomright",
+    pal = pal,
+    values = ~cluster,
+    title = "Clusters"
+  )
+```
+
+```{r}
+df$cluster_id_scan <- factor(df$cluster_id_scan)
+levels(df$cluster_id_scan)
+```
+
+```{r}
+m1 <- lm(CMEDV ~ CRIM + ZN + INDUS + AGE + TAX + PTRATIO + cluster_id,
+         data = df)
+
+summary(m1)
+```
+
+```{r}
+
+df$resid_m1 = residuals(m1)
+df_wgs <- st_transform(df, 4326)
+
+pal_resid <- colorNumeric(
+  palette = colorRampPalette(c("blue", "white", "red"))(256),
+  domain = df_wgs$resid_m1,
+  na.color = "#BDBDBD"
+)
+
+leaflet(df_wgs) %>%
+  addProviderTiles(providers$CartoDB.PositronNoLabels) %>%
+  addCircleMarkers(
+    radius = 5,
+    stroke = FALSE,
+    fillOpacity = 0.8,
+    color = ~pal_resid(resid_m1),
+    popup = ~paste0(
+      "<b>CMEDV :</b> ", round(CMEDV, 2), "<br>",
+      "<b>Cluster :</b> ", cluster_id, "<br>",
+      "<b>Résidu m1 :</b> ", round(resid_m1, 3)
+    )
+  ) %>%
+  addLegend(
+    position = "bottomright",
+    pal = pal_resid,
+    values = ~resid_m1,
+    title = "Résidus m1",
+    opacity = 1
+  )
+```
+
+```{r}
+for (k in c(5, 8, 10, 15)) {
+  knn <- knearneigh(coords, k = k)
+  nb <- knn2nb(knn)
+  lw <- nb2listw(nb, style = "W")
+  print(k)
+  print(moran.test(df$resid_m1, lw))
+}
+```
+
+# Modèles spatiaux :
+
+## SAR :
+
+```{r}
+sar_model <- lagsarlm(fml, data = df, listw = listw)
+```
+
+```{r}
+summary(sar_model)
+```
+
+```{r}
+df$res_sar <- residuals(sar_model)
+moran.test(df$res_sar, listw)
+```
+
+```{r}
+m <- st_transform(df, 4326)
+
+lim <- 10
+m$resid0_clip <- pmax(pmin(m$res_sar, lim), -lim)
+
+pal <- colorNumeric(
+  palette = colorRampPalette(c("blue", "white", "red"))(256),
+  domain = c(-lim, lim),
+  na.color = "#BDBDBD"
+)
+
+leaflet(m) %>%
+  addProviderTiles(providers$CartoDB.PositronNoLabels) %>%
+  addCircleMarkers(
+    radius = 4,
+    stroke = FALSE,
+    fillOpacity = 0.8,
+    color = ~pal(resid0_clip),
+    popup = ~paste0(
+      "resid0: ", signif(resid0, 4),
+      "<br>resid0 (clip): ", signif(resid0_clip, 4)
+    )
+  ) %>%
+  addLegend(
+    position = "bottomright",
+    pal = pal,
+    values = ~resid0_clip,
+    title = "Résidus (clip [-4, 4])"
+  )
+```
+
+```{r}
+
+# 1) IMPORTANT : ellipse => coordonnées cartésiennes (pas lon/lat)
+if (isTRUE(sf::st_is_longlat(sf::st_crs(df)))) {
+  df <- sf::st_transform(df, 3857)
+}
+
+# 2) variable à scanner
+y <- df$res_sar
+
+# 3) enlever les NA / valeurs non finies
+df <- df[is.finite(df$res_sar), ]
+y  <- df$res_sar
+
+# 4) IDs directement dans df
+df$locid <- seq_len(nrow(df))
+
+# 5) coordonnées
+xy <- sf::st_coordinates(df)
+
+td <- file.path(tempdir(), "satscan_sar")
+dir.create(td, showWarnings = FALSE, recursive = TRUE)
+
+geo2 <- data.frame(
+  locid = df$locid,
+  X = xy[, 1],
+  Y = xy[, 2]
+)
+
+write.table(
+  geo2,
+  file = file.path(td, "sar.geo"),
+  sep = " ",
+  row.names = FALSE,
+  col.names = FALSE,
+  quote = FALSE
+)
+
+readLines(file.path(td, "sar.geo"), n = 5)
+
+# 6) forcer le séparateur décimal à "."
+options(OutDec = ".")
+
+# 7) fichier cas : LocationID, n, y
+cas <- data.frame(
+  locid = df$locid,
+  n = 1,
+  y = df$res_sar
+)
+
+write.table(
+  cas,
+  file = file.path(td, "sar.cas"),
+  sep = " ",
+  row.names = FALSE,
+  col.names = FALSE,
+  quote = FALSE
+)
+
+readLines(file.path(td, "sar.cas"), n = 5)
+```
+
+```{r}
+invisible(ss.options(reset = TRUE))
+
+ss.options(list(
+  CaseFile = "sar.cas",
+  CoordinatesFile = "sar.geo",
+  CoordinatesType = 0,                 # 0 = cartésien
+  PrecisionCaseTimes = 0,              # pas de temps
+  AnalysisType = 1,                    # purely spatial
+  ModelType = 5,                       # normal model (continuous)
+  ScanAreas = 3,                       # high OR low
+  MonteCarloReps = 999,                # B = 999
+  MaxSpatialSizeInPopulationAtRisk = 50,
+  SpatialWindowShapeType = 1,          # elliptic window
+  NonCompactnessPenalty = 0,           # pas de pénalité
+  ResultsFile = "sar_scan",
+  LogRunToHistoryFile = "n"
+))
+
+write.ss.prm(td, "sar_scan")           # -> sar_scan.prm
+```
+
+```{r}
+invisible(ss.options(reset = TRUE))
+
+ss.options(list(
+  CaseFile = "sar.cas",
+  CoordinatesFile = "sar.geo",
+  CoordinatesType = 0,                 # 0 = cartésien
+  PrecisionCaseTimes = 0,              # pas de temps
+  AnalysisType = 1,                    # purely spatial
+  ModelType = 5,                       # normal model (continuous)
+  ScanAreas = 3,                       # high OR low
+  MonteCarloReps = 999,                # B = 999
+  MaxSpatialSizeInPopulationAtRisk = 50,
+  SpatialWindowShapeType = 1,          # elliptic window
+  NonCompactnessPenalty = 0,           # pas de pénalité
+  ResultsFile = "sar_scan",
+  LogRunToHistoryFile = "n"
+))
+
+write.ss.prm(td, "sar_scan")           # -> sar_scan.prm
+```
+
+```{r}
+sar_scan <- satscan(
+  prmlocation = td,
+  prmfilename = "sar_scan",
+  sslocation = "/Program Files/SaTScan",  
+  ssbatchfilename = "SaTScanBatch64",        
+  verbose = TRUE
+)
+```
+
+```{r}
+summary(sar_scan)        # résumé lisible
+names(sar_scan)          # voir les tables dispo
+sar_scan$col             # table des clusters (souvent la plus utile)
+sar_scan$sci 
+```
+
+```{r}
+gis_sar <- sar_scan$gis
+
+loc_col <- names(gis_sar)[grepl("loc", names(gis_sar), ignore.case = TRUE) &
+                        grepl("id", names(gis_sar), ignore.case = TRUE)][1]
+clu_col <- names(gis_sar)[grepl("cluster", names(gis_sar), ignore.case = TRUE)][1]
+
+if (is.na(loc_col) || is.na(clu_col)) {
+  stop("Je ne trouve pas les colonnes locid/cluster dans res$gis. Fais names(res$gis) pour voir les noms exacts.")
+}
+
+df$cluster_sar <- gis_sar[[clu_col]][match(df$locid, gis_sar[[loc_col]])]
+df$cluster_sar[is.na(df$cluster_sar)] <- 0L
+
+table(df$cluster_sar)
+
+```
+
+```{r}
+df$cluster_sar <- factor(df$cluster_sar)
+levels(df$cluster_sar)
+```
+
+```{r}
+sar_1 <- lagsarlm(CMEDV ~ CRIM + ZN + INDUS + AGE + TAX + PTRATIO + cluster_sar,
+         data = df, listw = listw)
+```
+
+```{r}
+summary(sar_1)
+```
+
+```{r}
+df$res_sar1 = residuals(sar_1)
+```
+
+```{r}
+moran.test(df$res_sar1, listw)
+```
+
+## SEM model
+
+```{r}
+sem_model <- errorsarlm(
+  CMEDV ~ CRIM + ZN + INDUS + AGE + TAX + PTRATIO,
+  data = df,
+  listw = listw
+)
+
+summary(sem_model)
+```
+
+```{r}
+df$res_sem = residuals(sem_model)
+```
+
+```{r}
+moran.test(df$res_sem, listw)
+```
+
+```{r}
+# 1) IMPORTANT : ellipse => coordonnées cartésiennes (pas lon/lat)
+if (isTRUE(sf::st_is_longlat(sf::st_crs(df)))) {
+  df <- sf::st_transform(df, 3857)
+}
+
+# 2) variable à scanner
+y <- df$res_sem
+
+# 3) enlever les NA / valeurs non finies
+df <- df[is.finite(df$res_sem), ]
+y  <- df$res_sem
+
+# 4) IDs directement dans df
+df$locid <- seq_len(nrow(df))
+
+# 5) coordonnées
+xy <- sf::st_coordinates(df)
+
+td <- file.path(tempdir(), "satscan_sem")
+dir.create(td, showWarnings = FALSE, recursive = TRUE)
+
+geo2 <- data.frame(
+  locid = df$locid,
+  X = xy[, 1],
+  Y = xy[, 2]
+)
+
+write.table(
+  geo2,
+  file = file.path(td, "sem.geo"),
+  sep = " ",
+  row.names = FALSE,
+  col.names = FALSE,
+  quote = FALSE
+)
+
+readLines(file.path(td, "sem.geo"), n = 5)
+
+# 6) forcer le séparateur décimal à "."
+options(OutDec = ".")
+
+# 7) fichier cas : LocationID, n, y
+cas <- data.frame(
+  locid = df$locid,
+  n = 1,
+  y = df$res_sem
+)
+
+write.table(
+  cas,
+  file = file.path(td, "sem.cas"),
+  sep = " ",
+  row.names = FALSE,
+  col.names = FALSE,
+  quote = FALSE
+)
+
+readLines(file.path(td, "sem.cas"), n = 5)
+```
+
+```{r}
+invisible(ss.options(reset = TRUE))
+
+ss.options(list(
+  CaseFile = "sem.cas",
+  CoordinatesFile = "sem.geo",
+  CoordinatesType = 0,                 # 0 = cartésien
+  PrecisionCaseTimes = 0,              # pas de temps
+  AnalysisType = 1,                    # purely spatial
+  ModelType = 5,                       # normal model (continuous)
+  ScanAreas = 3,                       # high OR low
+  MonteCarloReps = 999,
+  MaxSpatialSizeInPopulationAtRisk = 50,
+  SpatialWindowShapeType = 1,          # elliptic window
+  NonCompactnessPenalty = 0,
+  ResultsFile = "sem_scan",
+  LogRunToHistoryFile = "n"
+))
+
+write.ss.prm(td, "sem_scan")           # -> sem_scan.prm
+```
+
+```{r}
+sem_scan <- satscan(
+  prmlocation = td,
+  prmfilename = "sem_scan",
+  sslocation = "/Program Files/SaTScan",  
+  ssbatchfilename = "SaTScanBatch64",        
+  verbose = TRUE
+)
+```
+
+```{r}
+summary(sem_scan)        # résumé lisible
+names(sem_scan)          # voir les tables dispo
+sem_scan$col             # table des clusters (souvent la plus utile)
+sem_scan$sci 
+```
+
+```{r}
+gis_sem <- sar_scan$gis
+
+loc_col <- names(gis_sem)[grepl("loc", names(gis_sem), ignore.case = TRUE) &
+                        grepl("id", names(gis_sem), ignore.case = TRUE)][1]
+clu_col <- names(gis_sem)[grepl("cluster", names(gis_sem), ignore.case = TRUE)][1]
+
+if (is.na(loc_col) || is.na(clu_col)) {
+  stop("Je ne trouve pas les colonnes locid/cluster dans res$gis. Fais names(res$gis) pour voir les noms exacts.")
+}
+
+df$cluster_sem <- gis_sar[[clu_col]][match(df$locid, gis_sar[[loc_col]])]
+df$cluster_sem[is.na(df$cluster_sem)] <- 0L
+
+table(df$cluster_sem)
+
+```
+
+```{r}
+df$cluster_sem <- factor(df$cluster_sem)
+levels(df$cluster_sem)
+```
+
+```{r}
+sem_m2 <- errorsarlm(
+  CMEDV ~ CRIM + ZN + INDUS + AGE + TAX + PTRATIO + cluster_sem,
+  data = df,
+  listw = listw
+)
+```
+
+```{r}
+summary(sem_m2)
+```
+
+```{r}
+df$res_sem2 = residuals(sem_m2) 
+moran.test(df$res_sem2, listw)
+```
