@@ -43,6 +43,4 @@ The project explores several questions related to the COVID-19 pandemic, includi
 - Relational database design
 - Entity-relationship modeling
 
-## Project Type
 
-Group project.
