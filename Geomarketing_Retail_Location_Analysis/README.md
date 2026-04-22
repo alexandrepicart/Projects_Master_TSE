@@ -18,7 +18,7 @@ The objective was to identify promising locations for future retail store openin
 
 ## Preview
 
-![Shiny dashboard](./images/app_overview.png)
+![Shiny dashboard](images/app_overview.png)
 
 ## Files
 
