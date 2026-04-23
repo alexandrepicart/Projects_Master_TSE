@@ -37,6 +37,4 @@ The objective was to identify promising locations for future retail store openin
 - Spatial analysis
 - Econometric modeling
 
-## Project Type
 
-Group project completed at TSE.
