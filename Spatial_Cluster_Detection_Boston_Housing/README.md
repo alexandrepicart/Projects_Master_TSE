@@ -41,6 +41,3 @@ The project aimed to identify spatial clusters in housing-related variables and 
 - leaflet
 - ggplot2
 
-## Project Type
-
-Group project completed at TSE.
