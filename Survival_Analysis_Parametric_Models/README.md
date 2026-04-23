@@ -29,6 +29,4 @@ It focuses on parametric survival models, their interpretation, and their valida
 
 The empirical illustration is based on life insurance contracts and studies contract duration with right-censored data.
 
-## Project Type
 
-Group project completed at TSE.
