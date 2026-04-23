@@ -13,7 +13,7 @@ The objective was to design a relational database for COVID-19 data and use SQL-
 
 ## Files
 
-- `Databases_Report.pdf`: final written report presenting the database structure, entity-relationship diagram, data import process, and the main analytical queries and results.
+- `Databases_Report.pdf`: final written report presenting the database structure, entity-relationship diagram, data import process, and the main analytical queries.
 
 ## Main Components
 
