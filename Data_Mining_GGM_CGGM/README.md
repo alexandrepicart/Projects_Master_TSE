@@ -40,6 +40,4 @@ The project compares the conditional dependency structures of macroeconomic vari
 
 It also includes a specific comparison for Norway, whose position is intermediate between the two groups.
 
-## Project Type
 
-Group project completed at TSE.
