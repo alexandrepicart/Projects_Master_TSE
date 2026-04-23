@@ -26,6 +26,4 @@ The objective was to study the extreme behaviour of the USD/EUR exchange rate us
 - Value at Risk (VaR)
 - Expected Shortfall (ES)
 
-## Project Type
 
-Group project completed at TSE.
