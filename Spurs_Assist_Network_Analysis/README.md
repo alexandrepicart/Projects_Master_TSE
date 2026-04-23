@@ -40,5 +40,4 @@ The binary QAP regression suggests only weak evidence of a popularity mechanism 
 - tidygraph
 - ggraph
 - ggplot2
-- dplyr
 
