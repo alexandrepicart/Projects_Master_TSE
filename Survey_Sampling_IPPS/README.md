@@ -24,6 +24,4 @@ It focuses on Inclusion Probability Proportional-to-Size (IPPS) sampling designs
 - Rao-Sampford sampling
 - Monte Carlo comparison with SRSWOR and Bernoulli designs
 
-## Project Type
 
-Group project completed at TSE.
